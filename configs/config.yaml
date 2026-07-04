@@ -1,0 +1,9 @@
+game:
+  epsilon: 0.05
+
+training:
+  epochs: 15
+  batch_size: 512
+  defender_lr: 0.001
+  attacker_lr: 0.002
+  weight_decay: 0.0001
