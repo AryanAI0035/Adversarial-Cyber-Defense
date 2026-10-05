@@ -1,0 +1,15 @@
+{
+  "scope": "Malicious test rows only; saved learned attacker; threshold 0.5; corrected perturbation function; no retraining",
+  "malicious_test_rows": 12833,
+  "clean_true_positives": 7927,
+  "perturbed_true_positives": 8997,
+  "clean_attack_recall": 0.6177043559572976,
+  "perturbed_attack_recall": 0.7010831450167537,
+  "epsilon": 0.05,
+  "max_actual_feature_change": 0.050000011920928955,
+  "budget_violations_tolerance_1e_6": 0,
+  "checkpoint_sha256": {
+    "defender": "22703de79da48f749f4a5d2177914e5dab3ab963bdf09796bde5f96fb774ca18",
+    "attacker": "3d7c76794b06056c50cbe4d4b2b3b638faeaaa2753c9d310549d661ac6176ab9"
+  }
+}

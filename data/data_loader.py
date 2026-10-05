@@ -6,23 +6,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-# ==============================================================================
-# THEORY: The NSL-KDD Dataset
-# ------------------------------------------------------------------------------
-# To build a realistic Cyber Defense system, we need real network traffic data.
-# The NSL-KDD dataset is one of the most famous datasets in cybersecurity research. 
-# It contains millions of network connection records, labeled as either "normal" 
-# or as specific types of cyber attacks (like DoS, Probing, U2R, R2L).
-#
-# Our script automatically downloads the dataset if it doesn't exist, extracts 
-# the 38 purely continuous mathematical features (like 'duration', 'src_bytes', 
-# 'dst_bytes', etc.), normalizes them, and drops the 3 categorical columns. 
-# 
-# Why drop the categorical columns? 
-# Because our Attacker AI uses gradients to "perturb" the numbers slightly. 
-# You can mathematically add 0.05 to 'src_bytes', but you can't mathematically 
-# add 0.05 to a string like 'tcp' or 'udp'!
-# ==============================================================================
+# NSL-KDD: retain 38 numeric features after dropping three categorical columns.
+# Fit min/max on training rows only; held-out values may fall outside [0, 1].
 
 NSL_KDD_URL = "http://205.174.165.80/CICDataset/NSL-KDD/Dataset/NSL-KDD.zip"
 # Note: The official URL is sometimes down. Another reliable mirror for the tar.gz:
@@ -50,7 +35,7 @@ def download_dataset(raw_dir: str):
     return train_path, test_path
 
 def load_and_preprocess(filepath: str, train_mins=None, train_maxs=None):
-    """Loads CSV, drops categorical cols, normalizes continuous cols, and encodes labels."""
+    """Loads CSV, drops categorical cols, normalizes numeric cols, and encodes labels."""
     # Read the CSV (it has no header)
     df = pd.read_csv(filepath, header=None)
     

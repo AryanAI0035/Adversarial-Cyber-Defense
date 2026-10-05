@@ -13,24 +13,7 @@ from models.attacker_policy import AttackerPolicy
 from envs.cyber_game_env import CyberGameEnv
 from data.data_loader import get_dataloaders
 
-# ==============================================================================
-# THEORY: Von Neumann's Minimax Theorem in Action
-# ------------------------------------------------------------------------------
-# In a zero-sum game, Player 1's loss is Player 2's gain. 
-# 
-# The Minimax Objective:
-# min(Defender) max(Attacker) Loss(Defender(Attacker(Traffic)))
-#
-# We achieve this using Alternating Optimization:
-# PHASE 1: We freeze the Defender's brain. The Attacker looks at how the Defender 
-#          thinks, and adjusts its perturbations to MAXIMIZE the Defender's error.
-# PHASE 2: We freeze the Attacker's brain. The Defender looks at the new, sneaky 
-#          traffic the Attacker just generated, and updates its weights to 
-#          MINIMIZE its error.
-#
-# We do this over and over until they reach a "Saddle Point Nash Equilibrium", 
-# where neither can get any better!
-# ==============================================================================
+# Alternating attacker/defender training. A fixed epoch budget does not prove equilibrium.
 
 def print_header(feat_dim):
     print("="*75)
@@ -38,12 +21,12 @@ def print_header(feat_dim):
     print("="*75)
     print(f"  System Parameters:")
     print(f"  - Feature Space    : {feat_dim} Dimensions (NSL-KDD)")
-    print(f"  - Topology         : Continuous Zero-Sum Game")
-    print(f"  - Equilibrium Goal : Saddle Point Nash Equilibrium")
+    print(f"  - Topology         : Learned attacker / binary defender")
+    print(f"  - Training Budget  : 15 epochs; no equilibrium guarantee")
     print(f"  - Attack Budget    : \u03b5 = 0.05 (L-inf Norm Bound)")
     print("="*75)
     print("  Starting Alternating Optimization Loop...")
-    print(f"  {'Epoch':<8} | {'Attacker Regret':<18} | {'Defender Risk':<18} | {'Time (s)':<10}")
+    print(f"  {'Epoch':<8} | {'Attacker BCE Loss':<18} | {'Defender BCE Loss':<18} | {'Time (s)':<10}")
     print("-" * 75)
 
 def train_minimax_step(
@@ -60,6 +43,8 @@ def train_minimax_step(
     real_malicious_logs = batch_features[malicious_mask]
     
     if real_malicious_logs.size(0) == 0:
+        for param in defender.parameters():
+            param.requires_grad = True
         opt_defender.zero_grad()
         loss = criterion(defender(batch_features), batch_labels)
         loss.backward()
@@ -150,7 +135,7 @@ def train():
         history["attacker_loss"].append(avg_a)
         history["defender_loss"].append(avg_d)
 
-        print(f"  {epoch:<802d} | {avg_a:<18.4f} | {avg_d:<18.4f} | {epoch_time:<10.2f}")
+        print(f"  {epoch:<8d} | {avg_a:<18.4f} | {avg_d:<18.4f} | {epoch_time:<10.2f}")
 
     # Save models and history
     os.makedirs("checkpoints", exist_ok=True)
@@ -163,7 +148,7 @@ def train():
         json.dump(history, f)
         
     print("="*75)
-    print("  Game Over. Saddle Point Reached. Models saved to checkpoints/")
+    print("  Training budget complete. Models saved to checkpoints/")
     print("="*75)
 
 if __name__ == "__main__":
